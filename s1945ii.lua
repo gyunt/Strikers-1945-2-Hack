@@ -9,32 +9,54 @@ objects = {}
 
 m_num = 10
 missiles = {}
+
+function cheat()
+-- set P1 invincible
+    mem:write_u8(0x60103FA, 1);
+end
+
+--update
 function update_p1()
     p1_x = (mem:read_u32(0x60103a3) & 0xFFFF0) >> 8
     p1_y = (mem:read_u32(0x60103a7) & 0xFFFF0) >> 8
 end
 
 function read_object(address)
-    bits = {}
+    a_1 = mem:read_u32(address);
+    a_2 = mem:read_u32(address+4);
+    a_3 = mem:read_u32(address+8);
+    a_4 = mem:read_u32(address+12);
 
-    int a = mem:read_u32(address);
-    bits[0] 
+    x = a_2 >> 16
+    y = a_2 & 0xffff
+
+    height = a_3 >> 16
+    width = a_3 & 0xffff
+
+    return {["x"] = x, ["y"] = y, ["height"] = height, ["width"] = width}
 end
 
 function update_objects()
 end
 
-function draw_hitbox()
-    screen:draw_box(p1_y -10, p1_x -10, p1_y + 10, p1_x + 10, 0, 0xff00ffff)   
+-- draw
+function draw_hitbox (x, y)
+    screen:draw_box(y -10, x -10, y + 10, x + 10, 0, 0xff00ffff)   
 end
 
+function draw_boxes()
+    draw_hitbox(p1_x, p1_y)
+    t = read_object(0x6016f68)
+    screen:draw_box(t["y"], t["x"], t["y"] + t["height"], t["x"] + width, 0x80ff0030, 0xffff00ff) 
+end
+
+--tick
 function update()
+    cheat()
     update_p1()
     update_objects()
-    draw_hitbox()
+    draw_boxes()
 end
-
-
 
 
 emu.sethook(update, "frame");
