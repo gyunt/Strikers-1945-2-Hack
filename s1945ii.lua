@@ -30,10 +30,10 @@ function read_object(address)
     x = a_2 >> 16
     y = a_2 & 0xffff
 
-    height = a_3 >> 16
-    width = a_3 & 0xffff
+    width = a_3 >> 16
+    height = a_3 & 0xffff
 
-    return {["x"] = x, ["y"] = y, ["height"] = height, ["width"] = width}
+    return {["ref"]=a_1, ["x"] = x, ["y"] = y, ["height"] = height, ["width"] = width, ["child"] = a_4}
 end
 
 function update_objects()
@@ -46,8 +46,16 @@ end
 
 function draw_boxes()
     draw_hitbox(p1_x, p1_y)
-    t = read_object(0x6016f68)
-    screen:draw_box(t["y"], t["x"], t["y"] + t["height"], t["x"] + width, 0x80ff0030, 0xffff00ff) 
+
+    adr = 0x6015f68
+    while (1) do
+        t = read_object(adr);
+        if t["ref"] == 0 then
+            break
+        end
+        screen:draw_box(t["y"], t["x"], t["y"] + t["height"], t["x"] + t["width"], 0x80ff0030, 0xffff00ff)
+        adr = adr + 0x10 
+    end
 end
 
 --tick
