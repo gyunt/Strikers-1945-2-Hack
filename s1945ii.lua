@@ -55,7 +55,25 @@ function draw_boxes()
         end
         screen:draw_box(t["y"], t["x"], t["y"] + t["height"], t["x"] + t["width"], 0x80ff0030, 0xffff00ff)
         adr = adr + 0x10 
+
+        if (mem:read_u32(t["ref"]) == 0x6091e48 and t["child"] == 1) then
+            break
+        end
     end
+end
+
+function draw_messages()
+    address = mem:read_u32(mem:read_u32(0x6015f68));
+
+    a_1 = mem:read_u32(address);
+    a_2 = mem:read_u32(address+4);
+    a_3 = mem:read_u32(address+8);
+    a_4 = mem:read_u32(address+12);
+    a_5 = mem:read_u32(address+16);
+    a_6 = mem:read_u32(address+20);
+    a_7 = mem:read_u32(address+24);
+
+    screen:draw_text(40, 40, a_1 .. "\n"  .. a_2 .. "\n" ..  a_3 .. a_4);
 end
 
 --tick
@@ -64,6 +82,7 @@ function update()
     update_p1()
     update_objects()
     draw_boxes()
+    draw_messages()
 end
 
 
