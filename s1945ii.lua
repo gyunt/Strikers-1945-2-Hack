@@ -6,7 +6,8 @@ screen = manager:machine().screens[":screen"]
 options = {
     ["auto-shoot"] = 1, 
     ["frame-per-action"] = 5,
-    ["object-hitbox"] = 1}
+    ["object-hitbox"] = 1,
+    ["missile-hitbox"] = 1}
 player1 = {
     ["x"] = 0, 
     ["y"] = 0, 
@@ -34,8 +35,14 @@ function read_object(address)
     a_4 = mem:read_u32(address+12)
 
     x = a_2 >> 16
-    y = a_2 & 0xffff
+    if (x > 0x8000) then
+        x = x - 0xffff
+    end
 
+    y = (a_2 & 0x7fff)
+    if (y > 0x8000) then
+        y = y - 0xffff
+    end
     width = a_3 >> 16
     height = a_3 & 0xffff
 
@@ -44,7 +51,8 @@ function read_object(address)
                 ["y"] = y, 
                 ["height"] = height,
                 ["width"] = width,
-                ["child"] = a_4 }
+                ["child"] = a_4 & 0xffff,
+                ["check"] = a_4 >> 16}
 end
 
 function get_objects()
@@ -70,14 +78,11 @@ end
 function get_missiles()
     missiles = {}
     adr = 0x6016f68
-    while (1) do
-        t = read_object(adr)
-        if t["ref"] == 0 then
-            break
-        end
 
+    n = mem:read_u16(0x6018ecc) + mem:read_u16(0x60190d0)
+    for i = 1, n do
+        t = read_object(adr)
         missiles[adr] = t
-        
         adr = adr + 0x10
     end
     return missiles
@@ -85,15 +90,15 @@ end
 
 -- draw
 function draw_boxes()
-    if (draw_hitbox  draw_hitbox({[0] = {["x"]=player1["x"]-10, ["y"]=player1["y"]-10, ["width"] = 20, ["height"] = 20}}, 0, 0xff00ffff)
-    draw_hitbox(get_objects(), 0x80ff0030, 0xffff00ff)
-    draw_hitbox(get_missiles(),0, 0xff00ffff) 
+    draw_hitbox({[0] = {["x"]=player1["x"]-10, ["y"]=player1["y"]-10, ["width"] = 20, ["height"] = 20}}, 0, 0xff00ffff)
+    if options["object-hitbox"] == 1 then draw_hitbox(get_objects(), 0x80ff0030, 0xffff00ff) end
+    if options["missile-hitbox"] == 1 then draw_hitbox(get_missiles(),0, 0xff00ffff) end 
 end
 
 function draw_hitbox(objs, color_inside, color_border)
     for k,v in pairs(objs) do
-        min_x = math.max(v["x"], 10)
-        min_y = math.max(v["y"], 10)
+        min_x = math.max(v["x"], 0)
+        min_y = math.max(v["y"], 0)
         max_x = math.min(v["x"]+v["width"], v["x"]+screen:width())
         max_y = math.min(v["y"]+v["height"], v["y"]+screen:height())
 
@@ -107,8 +112,6 @@ end
 
 function p1()
     p1_autoshooting()
-
-    frame_count = frame_count + 1
     if (frame_count > options["frame-per-action"]) then
         frame_count = 0;
         port_x = ioport[player1["move-x"]]
@@ -139,7 +142,6 @@ function p1()
     if (port_y ~= nil) then
         port_y.write(port_y, 1)
     end
-
 end
 
 function p1_autoshooting()
