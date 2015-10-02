@@ -3,8 +3,15 @@ mem = cpu.spaces["program"]
 screen = manager:machine().screens[":screen"]
 
 
-options = {["auto-shoot"] = 1, ["frame-per-action"] = 5}
-player1 = {["x"] = 0, ["y"] = 0, ["move-x"] = "", ["move-y"] = ""}
+options = {
+    ["auto-shoot"] = 1, 
+    ["frame-per-action"] = 5,
+    ["object-hitbox"] = 1}
+player1 = {
+    ["x"] = 0, 
+    ["y"] = 0, 
+    ["move-x"] = "", 
+    ["move-y"] = ""}
 
 -- frame per action
 frame_count = 0
@@ -77,31 +84,20 @@ function get_missiles()
 end
 
 -- draw
-function draw_hitbox (x, y)
-    screen:draw_box(y -10, x -10, y + 10, x + 10, 0, 0xff00ffff)   
+function draw_boxes()
+    if (draw_hitbox  draw_hitbox({[0] = {["x"]=player1["x"]-10, ["y"]=player1["y"]-10, ["width"] = 20, ["height"] = 20}}, 0, 0xff00ffff)
+    draw_hitbox(get_objects(), 0x80ff0030, 0xffff00ff)
+    draw_hitbox(get_missiles(),0, 0xff00ffff) 
 end
 
-function draw_boxes()
-    draw_hitbox(player1["x"], player1["y"])
-
-    objs = get_objects()
+function draw_hitbox(objs, color_inside, color_border)
     for k,v in pairs(objs) do
-        min_x = math.max(v["x"], 1)
-        min_y = math.max(v["y"], 1)
+        min_x = math.max(v["x"], 10)
+        min_y = math.max(v["y"], 10)
         max_x = math.min(v["x"]+v["width"], v["x"]+screen:width())
         max_y = math.min(v["y"]+v["height"], v["y"]+screen:height())
 
-        screen:draw_box(min_y, min_x, max_y, max_x, 0x80ff0030, 0xffff00ff)
-    end
-
-    mis = get_missiles()
-    for k,v in pairs(mis) do
-        min_x = math.max(v["x"], 1)
-        min_y = math.max(v["y"], 1)
-        max_x = math.min(v["x"]+v["width"], v["x"]+screen:width())
-        max_y = math.min(v["y"]+v["height"], v["y"]+screen:height())
-
-        screen:draw_box(min_y, min_x, max_y, max_x, 0, 0xff00ffff)
+        screen:draw_box(min_y, min_x, max_y, max_x, color_inside, color_border)
     end
 end
 
