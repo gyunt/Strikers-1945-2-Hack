@@ -115,9 +115,15 @@ function p1()
     frame_count = frame_count + 1
     if (frame_count > options["frame-per-action"]) then
         frame_count = 0;
+        port_x = ioport[player1["move-x"]]
+        port_y = ioport[player1["move-y"]]
 
         if (port_x ~= nil) then
             port_x.write(port_x, 0)
+        end
+
+        if (port_y ~= nil) then
+            port_y.write(port_y, 0)
         end
 
         d_y = {"P1 Up", "", "P1 Down"}
