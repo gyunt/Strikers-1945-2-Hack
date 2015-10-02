@@ -111,6 +111,7 @@ function draw_messages()
 end
 
 function p1()
+    frame_count = frame_count + 1
     p1_autoshooting()
     if (frame_count > options["frame-per-action"]) then
         frame_count = 0;
