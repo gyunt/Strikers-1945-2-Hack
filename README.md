@@ -1,4 +1,4 @@
-# s1945ii_hitbox
+# Strikers 1945 2 hack
 
 [![MAME](https://travis-ci.org/mamedev/mame.svg)](https://github.com/mamedev/mame)
 
