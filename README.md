@@ -11,6 +11,5 @@ HOW TO
 
 
 Sample 
-=============
-- [Video Link](https://youtu.be/resr2K0z1Aw)   
-- 
+=============   
+- [Video Link](https://youtu.be/resr2K0z1Aw)  
