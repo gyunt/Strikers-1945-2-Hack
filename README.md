@@ -9,3 +9,8 @@ HOW TO
 3. run    
   `>($MAME)/mame s1945ii -script ($s1945ii_hitbox)/s1945ii.lua`
 
+
+Sample 
+=============
+- [Video Link](https://youtu.be/resr2K0z1Aw)   
+- 
