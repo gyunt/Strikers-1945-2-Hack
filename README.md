@@ -1,6 +1,6 @@
 # Strikers 1945 2 hack
 
-[![MAME](https://travis-ci.org/mamedev/mame.svg)](https://github.com/mamedev/mame)
+[![MAME](http://www.mame.net/_include/img/mame-logo.png)](https://github.com/mamedev/mame)
 
 HOW TO
 =============
