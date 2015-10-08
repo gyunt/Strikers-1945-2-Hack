@@ -4,10 +4,12 @@ screen = manager:machine().screens[":screen"]
 
 
 options = {
-    ["auto-shoot"] = 1, 
+    ["auto-shoot"] = 0,
+    ["auto-move"] = 0,
     ["frame-per-action"] = 5,
     ["object-hitbox"] = 1,
-    ["missile-hitbox"] = 1}
+    ["state-msg"] = 1, 
+    ["missile-hitbox"] = 0}
 player1 = {
     ["x"] = 0, 
     ["y"] = 0, 
@@ -26,6 +28,37 @@ end
 function update_p1()
     player1["x"] = (mem:read_u32(0x60103a3) & 0xFFFF0) >> 8
     player1["y"] = (mem:read_u32(0x60103a7) & 0xFFFF0) >> 8
+end
+
+-- play-time in playing-stage, unit = 1/100 sec
+function get_stage_time()
+    return mem:read_u32(0x600c4e0)
+end
+
+-- whole play-time, unit = 1/100 sec
+function get_play_time()
+    return mem:read_u32(0x60103bc)
+end
+
+function get_p1_score()
+    return mem:read_u32(0x060103c4)
+end
+
+function get_p1_extra_weapon_gauge()
+    -- 0 ~ 48980000
+    return mem:read_u32(0x6010414)
+end
+
+function get_p1_number_of_bombs()
+    return mem:read_u8(0x60103C3)
+end
+
+function get_p1_number_of_lives()
+    return mem:read_u8(0x60103C1)
+end
+
+function get_p1_fire_power()
+    return mem:read_u8(0x60103e7)
 end
 
 function read_object(address)
@@ -115,22 +148,25 @@ function p1()
     p1_autoshooting()
     if (frame_count > options["frame-per-action"]) then
         frame_count = 0;
-        port_x = ioport[player1["move-x"]]
-        port_y = ioport[player1["move-y"]]
 
-        if (port_x ~= nil) then
-            port_x.write(port_x, 0)
+        if options["auto-move"] == 1 then
+                port_x = ioport[player1["move-x"]]
+                port_y = ioport[player1["move-y"]]
+
+            if (port_x ~= nil) then
+                port_x.write(port_x, 0)
+            end
+
+            if (port_y ~= nil) then
+                port_y.write(port_y, 0)
+            end
+
+            d_y = {"P1 Up", "", "P1 Down"}
+            d_x = {"P1 Right", "", "P1 Left"}
+
+            player1["move-x"] = d_x[math.random(1,3)];
+            player1["move-y"] = d_y[math.random(1,3)];
         end
-
-        if (port_y ~= nil) then
-            port_y.write(port_y, 0)
-        end
-
-        d_y = {"P1 Up", "", "P1 Down"}
-        d_x = {"P1 Right", "", "P1 Left"}
-
-        player1["move-x"] = d_x[math.random(1,3)];
-        player1["move-y"] = d_y[math.random(1,3)];
     end
 
     port_x = ioport[player1["move-x"]]
@@ -157,7 +193,9 @@ function update()
     update_p1()
     draw_boxes()
     p1()
-    draw_messages()
+    if (options["state-msg"] == 1) then
+        draw_messages()
+    end
 end
 
 
