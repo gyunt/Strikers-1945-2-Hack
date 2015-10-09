@@ -61,23 +61,52 @@ function get_p1_fire_power()
     return mem:read_u8(0x60103e7)
 end
 
-function read_object(address)
-    a_1 = mem:read_u32(address)
-    a_2 = mem:read_u32(address+4)
-    a_3 = mem:read_u32(address+8)
-    a_4 = mem:read_u32(address+12)
+function get_number_of_object()
+    return mem:read_u16(0x6018b46)
+end
+-- n(items) = n(gold) + n(power) + n(bomb)
+function get_number_of_items()
+    return mem:read_u16(0x601c428)
+end
 
-    x = a_2 >> 16
+--[[ it's not work
+function get_number_of_power_items()
+    return mem:read_u16(0x6014fd8)
+end ]]--
+
+function read_object(address)
+    local a_1 = mem:read_u32(address)
+    local a_2 = mem:read_u32(address+4)
+    local a_3 = mem:read_u32(address+8)
+    local a_4 = mem:read_u32(address+12)
+
+    local x = a_2 >> 16
     if (x > 0x8000) then
         x = x - 0xffff
     end
 
-    y = (a_2 & 0x7fff)
+    local y = (a_2 & 0x7fff)
     if (y > 0x8000) then
         y = y - 0xffff
     end
-    width = a_3 >> 16
-    height = a_3 & 0xffff
+    local width = a_3 >> 16
+    local height = a_3 & 0xffff
+    local _type = ""
+    local ref_adr = mem:read_u32(a_1)
+
+    if ref_adr == 0x6092a24 then
+        if width == 0x18 then
+            _type = "power"
+        elseif width == 0x1b then
+            _type = "bomb"
+        else
+            _type ="gold"
+        end
+    elseif ref_adr == 0x6091e48 then
+        _type = "p1"
+    else
+        _type = "enemy"
+    end
 
     return {    ["ref"]=a_1, 
                 ["x"] = x, 
@@ -85,14 +114,32 @@ function read_object(address)
                 ["height"] = height,
                 ["width"] = width,
                 ["child"] = a_4 & 0xffff,
-                ["check"] = a_4 >> 16}
+                ["check"] = a_4 >> 16,
+                ["type"] = _type}
 end
 
+chk = {}
+
+function aa()
+    adr = 0x60189ca
+    while 1 do
+
+        if (chk[adr] ~= 1) then
+            print(string.format("%08X", adr))
+        end
+        adr = adr + 2
+        if adr > 0x6018b46 then
+            break end
+    end
+
+
+end
 function get_objects()
-    objects = {}
-    adr = 0x6015f68
+    local objects = {}
+    local adr = 0x6015f68
+    
     while (1) do
-        t = read_object(adr)
+        local t = read_object(adr)
         if t["ref"] == 0 then
             break
         end
@@ -105,12 +152,31 @@ function get_objects()
         end
     end
 
+
+    local cnt = 0
+    adr = 0x6018148
+    while (1) do
+        local t = read_object(adr)
+        if t["ref"] == 0 then
+            break
+        end
+
+        if (t["type"] == "bomb" or t["type"] == "gold" or t["type"] == "power") then
+            cnt = cnt + 1
+            objects[adr] = t
+
+            if (cnt >= get_number_of_items()) then break end
+        end
+        adr = adr + 0x10 
+    end
+
+
     return objects
 end
 
 function get_missiles()
-    missiles = {}
-    adr = 0x6016f68
+    local missiles = {}
+    local adr = 0x6016f68
 
     n = mem:read_u16(0x6018ecc) + mem:read_u16(0x60190d0)
     for i = 1, n do
@@ -121,9 +187,23 @@ function get_missiles()
     return missiles
 end
 
+--[[
+function get_items()
+    local adr = 0x60148f8
+    local items = {}
+
+    for i = 0, get_number_of_items() do
+        table.insert(items,{["x"]=mem:read_u16(adr), ["y"]=mem:read_u16(adr+4), ["width"] = 10, ["height"] = 10})
+      
+        adr = adr + 0x2c
+    end
+
+    return items
+end
+]]--
+
 -- draw
 function draw_boxes()
-    draw_hitbox({[0] = {["x"]=player1["x"]-10, ["y"]=player1["y"]-10, ["width"] = 20, ["height"] = 20}}, 0, 0xff00ffff)
     if options["object-hitbox"] == 1 then draw_hitbox(get_objects(), 0x80ff0030, 0xffff00ff) end
     if options["missile-hitbox"] == 1 then draw_hitbox(get_missiles(),0, 0xff00ffff) end 
 end
@@ -135,7 +215,18 @@ function draw_hitbox(objs, color_inside, color_border)
         max_x = math.min(v["x"]+v["width"], v["x"]+screen:width())
         max_y = math.min(v["y"]+v["height"], v["y"]+screen:height())
 
-        screen:draw_box(min_y, min_x, max_y, max_x, color_inside, color_border)
+
+        if (v["type"] == "power" or v["type"] == "bomb" or v["type"] == "gold") then
+            if (v["type"] == "power") then
+                screen:draw_box(min_y, min_x, max_y, max_x, 0, 0xff00ffff)
+            elseif (v["type"] == "bomb") then
+                screen:draw_box(min_y, min_x, max_y, max_x, 0, 0xffff00ff)
+            elseif (v["type"] == "gold") then
+                screen:draw_box(min_y, min_x, max_y, max_x, 0, 0xffffff00)
+            end
+        else
+            screen:draw_box(min_y, min_x, max_y, max_x, color_inside, color_border)
+        end
     end
 end
 
