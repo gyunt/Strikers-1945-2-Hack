@@ -4,8 +4,8 @@ screen = manager:machine().screens[":screen"]
 
 
 options = {
-    ["auto-shoot"] = 0,
-    ["auto-move"] = 0,
+    ["auto-shoot"] = 1,
+    ["auto-move"] = 1,
     ["frame-per-action"] = 5,
     ["object-hitbox"] = 1,
     ["state-msg"] = 1, 
@@ -22,6 +22,7 @@ frame_count = 0
 function cheat()
 -- set P1 invincible
     mem:write_u8(0x60103FA, 1)
+    --mem:write_u8(0x600c664, 3)
 end
 
 --update
