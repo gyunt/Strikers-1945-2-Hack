@@ -70,11 +70,6 @@ function get_number_of_items()
     return mem:read_u16(0x601c428)
 end
 
---[[ it's not work
-function get_number_of_power_items()
-    return mem:read_u16(0x6014fd8)
-end ]]--
-
 function read_object(address)
     local a_1 = mem:read_u32(address)
     local a_2 = mem:read_u32(address+4)
@@ -119,22 +114,6 @@ function read_object(address)
                 ["type"] = _type}
 end
 
-chk = {}
-
-function aa()
-    adr = 0x60189ca
-    while 1 do
-
-        if (chk[adr] ~= 1) then
-            print(string.format("%08X", adr))
-        end
-        adr = adr + 2
-        if adr > 0x6018b46 then
-            break end
-    end
-
-
-end
 function get_objects()
     local objects = {}
     local adr = 0x6015f68
@@ -144,9 +123,7 @@ function get_objects()
         if t["ref"] == 0 then
             break
         end
-
         objects[adr] = t
-
         adr = adr + 0x10 
         if (mem:read_u32(t["ref"]) == 0x6091e48 and t["child"] == 1) then
             break
@@ -171,7 +148,6 @@ function get_objects()
         adr = adr + 0x10 
     end
 
-
     return objects
 end
 
@@ -187,21 +163,6 @@ function get_missiles()
     end
     return missiles
 end
-
---[[
-function get_items()
-    local adr = 0x60148f8
-    local items = {}
-
-    for i = 0, get_number_of_items() do
-        table.insert(items,{["x"]=mem:read_u16(adr), ["y"]=mem:read_u16(adr+4), ["width"] = 10, ["height"] = 10})
-      
-        adr = adr + 0x2c
-    end
-
-    return items
-end
-]]--
 
 -- draw
 function draw_boxes()
@@ -232,6 +193,7 @@ function draw_hitbox(objs, color_inside, color_border)
 end
 
 function draw_messages()
+    screen:draw_text(40, 40, get_number_of_items() .. "\n");
 end
 
 function p1()
