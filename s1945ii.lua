@@ -20,9 +20,12 @@ player1 = {
 frame_count = 0
 
 function cheat()
+-- set infinite credit
+    mem:write_u8(0x600c3be, 09)
 -- set P1 invincible
     mem:write_u8(0x60103FA, 1)
-    --mem:write_u8(0x600c664, 3)
+-- set P1 infinite life
+    mem:write_u8(0x60103c1, 3)
 end
 
 --update
@@ -34,6 +37,11 @@ end
 -- play-time in playing-stage, unit = 1/100 sec
 function get_stage_time()
     return mem:read_u32(0x600c4e0)
+end
+
+function get_state_number()
+    return mem:read_u8(0x600c674) + 1
+    --mem:read_u8(0x600c553)
 end
 
 -- whole play-time, unit = 1/100 sec
