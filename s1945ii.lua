@@ -231,7 +231,6 @@ function draw_hitbox(objs, color_inside, color_border)
 end
 
 function draw_messages()
-    screen:draw_text(40, 40, "frame: " .. screen.frame_number(screen));
 end
 
 function p1()
