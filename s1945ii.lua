@@ -16,6 +16,9 @@ player1 = {
     ["move-x"] = "", 
     ["move-y"] = ""}
 
+-- frame per action
+frame_count = 0
+
 function cheat()
 -- set infinite credit
     mem:write_u8(0x600c3be, 09)
