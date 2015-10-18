@@ -109,7 +109,7 @@ function read_object(address)
                 ["type"] = _type}
 end
 
-function s1945ii.get_objects()
+function s1945ii.get_flights()
     local objects = {}
     local adr = 0x6015f68
     
@@ -160,9 +160,12 @@ function s1945ii.get_missiles()
 end
 
 -- draw
-function s1945ii.draw_boxes()
-    if options["object-hitbox"] == 1 then s1945ii.draw_hitbox(s1945ii.get_objects(), 0x80ff0030, 0xffff00ff) end
-if options["missile-hitbox"] == 1 then s1945ii.draw_hitbox(s1945ii.get_missiles(),0, 0xff00ffff) end
+function s1945ii.draw_flights()
+    s1945ii.draw_hitbox(s1945ii.get_flights(), 0x80ff0030, 0xffff00ff) 
+end
+
+function s1945ii.draw_missiles()
+    s1945ii.draw_hitbox(s1945ii.get_missiles(),0, 0xff00ffff) 
 end
 
 function s1945ii.draw_hitbox(objs, color_inside, color_border)
