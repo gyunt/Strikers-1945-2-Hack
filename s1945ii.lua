@@ -1,25 +1,10 @@
-cpu = manager:machine().devices[":maincpu"]
-mem = cpu.spaces["program"]
-screen = manager:machine().screens[":screen"]
+local s1945ii = {}
 
+local cpu = manager:machine().devices[":maincpu"]
+local mem = cpu.spaces["program"]
+local screen = manager:machine().screens[":screen"]
 
-options = {
-    ["auto-shoot"] = 1,
-    ["auto-move"] = 1,
-    ["frame-per-action"] = 5,
-    ["object-hitbox"] = 1,
-    ["state-msg"] = 1, 
-    ["missile-hitbox"] = 0}
-player1 = {
-    ["x"] = 0, 
-    ["y"] = 0, 
-    ["move-x"] = "", 
-    ["move-y"] = ""}
-
--- frame per action
-frame_count = 0
-
-function cheat()
+function s1945ii.cheat()
 -- set infinite credit
     mem:write_u8(0x600c3be, 09)
 -- set P1 invincible
@@ -28,53 +13,55 @@ function cheat()
     mem:write_u8(0x60103c1, 3)
 end
 
---update
-function update_p1()
-    player1["x"] = (mem:read_u32(0x60103a3) & 0xFFFF0) >> 8
-    player1["y"] = (mem:read_u32(0x60103a7) & 0xFFFF0) >> 8
+function s1945ii.get_p1_x()
+    return  (mem:read_u32(0x60103a3) & 0xFFFF0) >> 8
+end
+
+function s1945ii.get_p1_y()
+    return  (mem:read_u32(0x60103a7) & 0xFFFF0) >> 8
 end
 
 -- play-time in playing-stage, unit = 1/100 sec
-function get_stage_time()
+function s1945ii.get_stage_time()
     return mem:read_u32(0x600c4e0)
 end
 
-function get_state_number()
+function s1945ii.get_state_number()
     return mem:read_u8(0x600c674) + 1
     --mem:read_u8(0x600c553)
 end
 
 -- whole play-time, unit = 1/100 sec
-function get_play_time()
+function s1945ii.get_play_time()
     return mem:read_u32(0x60103bc)
 end
 
-function get_p1_score()
+function s1945ii.get_p1_score()
     return mem:read_u32(0x060103c4)
 end
 
-function get_p1_extra_weapon_gauge()
+function s1945ii.get_p1_extra_weapon_gauge()
     -- 0 ~ 48980000
     return mem:read_u32(0x6010414)
 end
 
-function get_p1_number_of_bombs()
+function s1945ii.get_p1_number_of_bombs()
     return mem:read_u8(0x60103C3)
 end
 
-function get_p1_number_of_lives()
+function s1945ii.get_p1_number_of_lives()
     return mem:read_u8(0x60103C1)
 end
 
-function get_p1_fire_power()
+function s1945ii.get_p1_fire_power()
     return mem:read_u8(0x60103e7)
 end
 
-function get_number_of_object()
+function s1945ii.get_number_of_object()
     return mem:read_u16(0x6018b46)
 end
 -- n(items) = n(gold) + n(power) + n(bomb)
-function get_number_of_items()
+function s1945ii.get_number_of_items()
     return mem:read_u16(0x601c428)
 end
 
@@ -122,7 +109,7 @@ function read_object(address)
                 ["type"] = _type}
 end
 
-function get_objects()
+function s1945ii.get_objects()
     local objects = {}
     local adr = 0x6015f68
     
@@ -151,7 +138,7 @@ function get_objects()
             cnt = cnt + 1
             objects[adr] = t
 
-            if (cnt >= get_number_of_items()) then break end
+            if (cnt >= s1945ii.get_number_of_items()) then break end
         end
         adr = adr + 0x10 
     end
@@ -159,7 +146,7 @@ function get_objects()
     return objects
 end
 
-function get_missiles()
+function s1945ii.get_missiles()
     local missiles = {}
     local adr = 0x6016f68
 
@@ -173,12 +160,12 @@ function get_missiles()
 end
 
 -- draw
-function draw_boxes()
-    if options["object-hitbox"] == 1 then draw_hitbox(get_objects(), 0x80ff0030, 0xffff00ff) end
-    if options["missile-hitbox"] == 1 then draw_hitbox(get_missiles(),0, 0xff00ffff) end 
+function s1945ii.draw_boxes()
+    if options["object-hitbox"] == 1 then s1945ii.draw_hitbox(s1945ii.get_objects(), 0x80ff0030, 0xffff00ff) end
+if options["missile-hitbox"] == 1 then s1945ii.draw_hitbox(s1945ii.get_missiles(),0, 0xff00ffff) end
 end
 
-function draw_hitbox(objs, color_inside, color_border)
+function s1945ii.draw_hitbox(objs, color_inside, color_border)
     for k,v in pairs(objs) do
         min_x = math.max(v["x"], 0)
         min_y = math.max(v["y"], 0)
@@ -200,64 +187,10 @@ function draw_hitbox(objs, color_inside, color_border)
     end
 end
 
-function draw_messages()
-    screen:draw_text(40, 40, get_number_of_items() .. "\n");
+function s1945ii.draw_messages(str)
+    screen:draw_text(40, 40, str);
 end
 
-function p1()
-    frame_count = frame_count + 1
-    p1_autoshooting()
-    if (frame_count > options["frame-per-action"]) then
-        frame_count = 0;
-
-        if options["auto-move"] == 1 then
-                port_x = ioport[player1["move-x"]]
-                port_y = ioport[player1["move-y"]]
-
-            if (port_x ~= nil) then
-                port_x.write(port_x, 0)
-            end
-
-            if (port_y ~= nil) then
-                port_y.write(port_y, 0)
-            end
-
-            d_y = {"P1 Up", "", "P1 Down"}
-            d_x = {"P1 Right", "", "P1 Left"}
-
-            player1["move-x"] = d_x[math.random(1,3)];
-            player1["move-y"] = d_y[math.random(1,3)];
-        end
-    end
-
-    port_x = ioport[player1["move-x"]]
-    port_y = ioport[player1["move-y"]]
-
-    if (port_x ~= nil) then
-        port_x.write(port_x, 1)
-    end
-
-    if (port_y ~= nil) then
-        port_y.write(port_y, 1)
-    end
-end
-
-function p1_autoshooting()
-    if (options["auto-shoot"] == 1) then
-        ioport["P1 Button 1"].write(ioport["P1 Button 1"], screen.frame_number(screen) % 2)
-    end 
-end
-
---tick
-function update()
-    cheat()
-    update_p1()
-    draw_boxes()
-    p1()
-    if (options["state-msg"] == 1) then
-        draw_messages()
-    end
-end
+return s1945ii
 
 
-emu.sethook(update, "frame");
