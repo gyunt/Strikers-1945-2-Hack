@@ -1,5 +1,11 @@
 # Strikers 1945 2 hack
 
+#### It was moved to [AI Korea](https://github.com/aikorea/strikersii_ai)
+
+
+
+
+
 
 
 HOW TO
@@ -13,3 +19,4 @@ HOW TO
 Sample 
 =============   
 - [Video Link](https://youtu.be/resr2K0z1Aw)  
+
